@@ -30,6 +30,19 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # SSL Configuration for Cloud Databases (Aiven)
+    ca_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ca.pem')
+    if os.path.exists(ca_path):
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            "connect_args": {
+                "ssl": {
+                    "ca": ca_path
+                }
+            }
+        }
+    else:
+        SQLALCHEMY_ENGINE_OPTIONS = {}
+
     # Uploads
     UPLOAD_FOLDER = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
