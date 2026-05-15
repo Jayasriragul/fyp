@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch()
+
 import os
 import sys
 
@@ -8,11 +11,13 @@ from flask import Flask, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO, emit
+from flask_mailman import Mail
 from config import Config
 from models import db, bcrypt
 
-# Initialize SocketIO
+# Initialize Extensions (global instances)
 socketio = SocketIO(cors_allowed_origins="*", async_mode='eventlet')
+mail = Mail()
 
 
 def create_app():
@@ -22,8 +27,12 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     bcrypt.init_app(app)
+    mail.init_app(app)
     JWTManager(app)
-    CORS(app, resources={r"/api/*": {"origins": Config.FRONTEND_URL}}, supports_credentials=True)
+    
+    # Support multiple CORS origins
+    origins = [o.strip() for o in Config.FRONTEND_URL.split(',')]
+    CORS(app, resources={r"/api/*": {"origins": origins}}, supports_credentials=True)
     socketio.init_app(app)
 
     # Create uploads directory

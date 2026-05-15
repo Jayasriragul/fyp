@@ -3,6 +3,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from models import db, bcrypt
 from models.user import User, Admin
 from datetime import datetime
+from utils.email_utils import send_real_email
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -128,11 +129,27 @@ def forgot_password():
             return jsonify({'error': 'Email not found'}), 404
         admin.set_password(data['new_password'])
         db.session.commit()
-        return jsonify({'message': 'Password reset successful'}), 200
+        
+        # Send email to admin
+        send_real_email(
+            subject="EventZen QR: Password Reset",
+            body=f"Hi {admin.name},\n\nYour password has been successfully reset. Your new password is: {data['new_password']}\n\nPlease change it after logging in.",
+            recipient_email=admin.email
+        )
+        
+        return jsonify({'message': 'Password reset successful. Check your email.'}), 200
 
     user.set_password(data['new_password'])
     db.session.commit()
-    return jsonify({'message': 'Password reset successful'}), 200
+    
+    # Send email to user
+    send_real_email(
+        subject="EventZen QR: Password Reset",
+        body=f"Hi {user.name},\n\nYour password has been successfully reset. Your new password is: {data['new_password']}\n\nPlease change it after logging in.",
+        recipient_email=user.email
+    )
+    
+    return jsonify({'message': 'Password reset successful. Check your email.'}), 200
 
 
 @auth_bp.route('/update-profile', methods=['PUT'])
