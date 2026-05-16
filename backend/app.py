@@ -67,6 +67,15 @@ def create_app():
     app.register_blueprint(notification_bp)
     app.register_blueprint(admin_bp)
 
+    # Root route
+    @app.route('/')
+    def index():
+        return {
+            'status': 'online',
+            'message': 'EventZen QR API is live',
+            'version': '1.0.0'
+        }
+
     # Health check
     @app.route('/api/health')
     def health():
